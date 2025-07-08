@@ -16,6 +16,13 @@ print("\n======== tokens ids =======\n")
 print(tokenizer.all_special_ids)              
 print("\n")
 
+print("\n======== mask tokens =======\n")
+# According to the LLaDA paper and the official repo, the mask token is the one that has this ID :https://github.com/ML-GSAI/LLaDA/blob/main/app.py#L19
+token_id = 126336 # ID Mask
+token_mask = tokenizer.convert_ids_to_tokens(token_id)
+print("Mask token:", token_mask)        
+print("Mask token ID:", token_id)   
+
 # 2. Inspecciona la cadena final tras apply_chat_template:
 wrapped = tokenizer.apply_chat_template(
     [{"role": "user", "content": prompt}],
