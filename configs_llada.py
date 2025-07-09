@@ -1,7 +1,8 @@
 """
 LLaDA configuration
 """
-from transformers import AutoConfig, PretrainedConfig
+from transformers import AutoConfig
+from transformers.configuration_utils import PretrainedConfig
 
 from enum import Enum
 from os import PathLike

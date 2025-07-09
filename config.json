@@ -50,5 +50,5 @@
   "weight_tying": false,
 
   "model_type": "llada",
-  "transformers_version": "4.46.3"
+  "transformers_version": "4.53.1"
 }

@@ -28,6 +28,11 @@ The main objective of this project is to:
 * Create the **training loop** from scratch.
 * Optionally, implement a **fine-tuning script** for adapting the pretrained model to specific downstream tasks.
 
+## 💾 Dataset
+The dataset we will use for training will be [HuggingFaceFW/fineweb](https://huggingface.co/datasets/HuggingFaceFW/fineweb) in the `sample-10BT` subset
+
+When the dataset is tokenized and masked, the dataset link will be provided so you can use it.
+
 ## 🙏 Acknowledgments
 
 - The [ML-GSAI](https://github.com/ML-GSAI) team for the original architecture

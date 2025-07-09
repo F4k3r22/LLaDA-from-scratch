@@ -23,7 +23,7 @@ import torch.backends.cuda
 import torch.nn as nn
 import torch.nn.functional as F
 from torch import einsum
-from transformers import PreTrainedModel
+from transformers.modeling_utils import PreTrainedModel
 from transformers.modeling_outputs import CausalLMOutputWithPast
 from transformers.models.auto import AutoModel
 from transformers.cache_utils import Cache

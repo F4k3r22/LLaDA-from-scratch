@@ -34,7 +34,7 @@ class PrepareData:
         self.tokenizer = AutoTokenizer.from_pretrained(self.tokenizer_name)
         self.vocab_size = self.tokenizer.vocab_size
 
-    def prepare_dataset(self):
+    def prepare_dataset(self, eps: float = 1e-3):
         print("==== Preparing Dataset ====")
         dataset = load_dataset(self.dataset_hf, name=self.sample, num_proc=self.num_proc)
         dataset = dataset['train']
@@ -62,19 +62,26 @@ class PrepareData:
             else:
                 L = self.max_seq_length
             chunk = all_ids[idx:idx+L]
-            if len(chunk) < L:
-                break  # avoid cut sequences at the end
+            if chunk.size(0) < L:
+                break
             chunks.append(chunk)
             idx += L
 
         print(f"==== Masking {len(chunks)} chunks ====")
         processed = []
         for chunk in chunks:
+            # 1. Sample t ∈ [0,1]
             t = random.random()
-            mask = torch.rand_like(chunk.float()) < t
+            # 2. Compute p_mask with epsilon
+            p_mask = (1.0 - eps) * t + eps
+            # 3. Sample mask positions
+            mask = torch.rand(chunk.size(0), device=chunk.device) < p_mask
+            # 4. Create noisy input
             noisy = chunk.clone()
             noisy[mask] = self.id_mask_token
+            # 5. Store also t for loss weighting
             processed.append({
+                "t": t,
                 "input_ids": chunk,
                 "noisy_input_ids": noisy,
                 "mask": mask
@@ -83,3 +90,9 @@ class PrepareData:
         print("==== Saved ====")
         torch.save(processed, self.output_dir / "processed_dataset.pt")
         print(f"✅ Saved in {self.output_dir / 'processed_dataset.pt'}")
+
+
+
+data = PrepareData()
+
+data.prepare_dataset()
