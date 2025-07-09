@@ -17,6 +17,17 @@ To reduce complexity and implement LLaDA more quickly from scratch, we are going
 - [GSAI-ML/LLaDA-8B-Instruct](https://huggingface.co/GSAI-ML/LLaDA-8B-Instruct/tree/main)
 - [GSAI-ML/LLaDA-1.5](https://huggingface.co/GSAI-ML/LLaDA-1.5/tree/main)
 
+## 🛠️ Implementation Notes
+
+It's important to clarify that the base architecture of the model (defined in [`modeling_llada.py`](https://huggingface.co/GSAI-ML/LLaDA-8B-Instruct/blob/main/modeling_llada.py)) already contains all necessary components to initialize and run LLaDA. Therefore, there is no need to redesign or significantly modify the model architecture itself.
+
+The main objective of this project is to:
+
+* Reuse the existing architecture.
+* Implement the **data preparation pipeline** (tokenization, masking, and formatting).
+* Create the **training loop** from scratch.
+* Optionally, implement a **fine-tuning script** for adapting the pretrained model to specific downstream tasks.
+
 ## 🙏 Acknowledgments
 
 - The [ML-GSAI](https://github.com/ML-GSAI) team for the original architecture

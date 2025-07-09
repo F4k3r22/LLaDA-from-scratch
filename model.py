@@ -4,17 +4,14 @@ import logging
 import math
 import sys
 from abc import abstractmethod
-from collections import defaultdict
 from functools import partial
 from typing import (
     Callable,
-    Dict,
     Iterable,
     List,
     NamedTuple,
     Optional,
     Sequence,
-    Set,
     Tuple,
     cast,
 )
