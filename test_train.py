@@ -1,8 +1,10 @@
 from model import LLaDAModel
-from configs_llada import ModelConfig, LayerNormType, BlockType
+from configs_llada import ModelConfig, LayerNormType, BlockType, InitFnType, ActivationType
+import torch
 
 # We will train and iterate from the base with a 100M parameter model to test and then scale to the 1B model.
 # Ok for training we should use ModelConfig not LLaDAConfig
+device = ("cuda:0" if torch.cuda.is_available() else "cpu")
 model_100M = ModelConfig(d_model=768, n_heads=12, n_layers=14, 
             n_kv_heads=12, mlp_ratio=4, mlp_hidden_size=3072,
             max_sequence_length=4096, vocab_size=126464,
@@ -11,7 +13,9 @@ model_100M = ModelConfig(d_model=768, n_heads=12, n_layers=14,
             rms_norm_eps=1e-5, attention_dropout=0.0, residual_dropout=0.0,
             embedding_dropout=0.0, embedding_size=126464, block_type=BlockType.llama,
             block_group_size=1, attention_layer_norm=False, attention_layer_norm_with_affine=True,
-            rope=True, rope_full_precision=True, rope_theta=500000.0, precision="bf16", weight_tying=False)
+            rope=True, rope_full_precision=True, rope_theta=500000.0, precision="bf16", weight_tying=False,
+            init_device=device, init_fn=InitFnType.mitchell, init_std=0.02, activation_type=ActivationType.swiglu,
+            alibi=False, alibi_bias_max=8.0)
 
 print("Load model test")
 model = LLaDAModel(model_100M, init_params=True)
