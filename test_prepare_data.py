@@ -3,6 +3,7 @@ from datasets import load_dataset
 from pathlib import Path
 import torch
 import random
+from tqdm import tqdm
 
 ## Just in case, I'll make a class to prepare data. I'll make it modular 
 ## and modifiable so that more people can understand it and adapt it to whatever is necessary.
@@ -14,7 +15,8 @@ class PrepareData:
         max_seq_length: int = 4096, 
         id_mask_token: int = 126336, # According to the LLaDA paper and the official repo, the mask token is the one that has this ID :https://github.com/ML-GSAI/LLaDA/blob/main/app.py#L19
         num_proc: int = 8,
-        output_dir: str = "data",):
+        output_dir: str = "data",
+        chunks_per_file: int = 10000):
 
         self.tokenizer_name = tokenizer
         self.dataset_hf = dataset_hf
@@ -24,6 +26,7 @@ class PrepareData:
         self.num_proc = num_proc
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(exist_ok=True, parents=True)
+        self.chunks_per_file = chunks_per_file
         self.init_tokenizer()
 
     def init_tokenizer(self):
@@ -40,59 +43,68 @@ class PrepareData:
         dataset = dataset['train']
 
         print("==== Tokenizing the entire dataset ====")
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         dataset = dataset.map(
-            lambda x: {"input_ids": self.tokenizer(x["text"])["input_ids"]},
+            lambda x: {"input_ids": self.tokenizer(x["text"]).to(device)["input_ids"]},
+            batched=True,
+            batch_size=100,
             num_proc=self.num_proc,
             remove_columns=dataset.column_names
         )
 
-        print("==== Concatenating all tokens ====")
-        all_ids = []
-        for example in dataset:
-            all_ids.extend(example["input_ids"])
-        all_ids = torch.tensor(all_ids, dtype=torch.long)
-
-        print("==== Dividing into chunks ====")
-        chunks = []
-        idx = 0
-        N = len(all_ids)
-        while idx < N:
-            if random.random() < 0.01:
-                L = random.randint(1, self.max_seq_length)
-            else:
-                L = self.max_seq_length
-            chunk = all_ids[idx:idx+L]
-            if chunk.size(0) < L:
-                break
-            chunks.append(chunk)
-            idx += L
-
-        print(f"==== Masking {len(chunks)} chunks ====")
+        # Procesamiento en streaming: acumulamos tokens y procesamos chunks cuando alcanzan el tamaño deseado
+        print("==== Processing tokens in streaming mode ====")
         processed = []
-        for chunk in chunks:
-            # 1. Sample t ∈ [0,1]
+        current_chunk = []  # Acumula los tokens
+        chunk_count = 0
+        file_count = 0
+
+
+        # Define función para procesar cada chunk: crea tensor, enmascara y empaqueta
+        def process_chunk(chunk_tokens):
+            chunk_tensor = torch.tensor(chunk_tokens, dtype=torch.long, device=device)
             t = random.random()
-            # 2. Compute p_mask with epsilon
             p_mask = (1.0 - eps) * t + eps
-            # 3. Sample mask positions
-            mask = torch.rand(chunk.size(0), device=chunk.device) < p_mask
-            # 4. Create noisy input
-            noisy = chunk.clone()
+            mask = torch.rand(chunk_tensor.size(0), device=device) < p_mask
+            noisy = chunk_tensor.clone()
             noisy[mask] = self.id_mask_token
-            # 5. Store also t for loss weighting
-            processed.append({
+            return {
                 "t": t,
-                "input_ids": chunk,
+                "input_ids": chunk_tensor,
                 "noisy_input_ids": noisy,
                 "mask": mask
-            })
+            }
 
-        print("==== Saved ====")
-        torch.save(processed, self.output_dir / "processed_dataset.pt")
-        print(f"✅ Saved in {self.output_dir / 'processed_dataset.pt'}")
+        # Itera sobre cada ejemplo del dataset ya tokenizado
+        for example in tqdm(dataset, desc="Processing dataset"):
+            tokens = example["input_ids"]
+            current_chunk.extend(tokens)
+
+            while len(current_chunk) >= self.max_seq_length:
+                L = random.randint(1, self.max_seq_length) if random.random() < 0.01 else self.max_seq_length
+                chunk_tokens = current_chunk[:L]
+                processed.append(process_chunk(chunk_tokens))
+                current_chunk = current_chunk[L:]
+                chunk_count += 1
+
+                # Guardar en archivo cada N chunks
+                if chunk_count % self.chunks_per_file == 0:
+                    file_path = self.output_dir / f"processed_chunk_{file_count:06d}.pt"
+                    torch.save(processed, file_path)
+                    print(f"✅ Saved {len(processed)} chunks to {file_path}")
+                    processed = []
+                    file_count += 1
+
+        # Guardar lo que queda
+        if processed:
+            file_path = self.output_dir / f"processed_chunk_{file_count:06d}.pt"
+            torch.save(processed, file_path)
+            print(f"✅ Saved final {len(processed)} chunks to {file_path}")
+
+        print(f"==== Finished processing. Total chunks: {chunk_count} ====")
 
 
 
-data = PrepareData()
+data = PrepareData(num_proc=32)
 
 data.prepare_dataset()
