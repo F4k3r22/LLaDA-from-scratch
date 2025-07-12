@@ -43,7 +43,7 @@ class PrepareData:
         dataset = dataset['train']
 
         print("==== Tokenizing the entire dataset ====")
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        device = torch.device("cpu")
         dataset = dataset.map(
             lambda x: {"input_ids": self.tokenizer(x["text"]).to(device)["input_ids"]},
             batched=True,
