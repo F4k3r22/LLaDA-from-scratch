@@ -5,7 +5,7 @@ from dataset import LLaDADataset
 from torch.utils.data import DataLoader
 import torch.nn.functional as F
 from torch.optim import AdamW
-from transformers import get_linear_schedule_with_warmup
+from transformers.optimization import get_linear_schedule_with_warmup
 from pathlib import Path
 
 # We will train and iterate from the base with a 100M parameter model to test and then scale to the 1B model.
@@ -27,14 +27,14 @@ print("Load model test")
 model = LLaDAModel(model_100M, init_params=True)
 print("Model test success")
 
-dataset = LLaDADataset(["/content/data_train_en/datasets--Fredtt3--LLaDA-Sample-10BT/snapshots/ee6dbc7d4bf1e4b2d0974e48f5fcb8b62b1f27f4",
-"/content/data_train_es/datasets--Fredtt3--LLaDA-Sample-ES/snapshots/1f3128a94b4ff7e8d96892052704529e720f6b58"], device=device)
+dataset = LLaDADataset(["/teamspace/studios/this_studio/data_train_en/datasets--Fredtt3--LLaDA-Sample-10BT/snapshots/ee6dbc7d4bf1e4b2d0974e48f5fcb8b62b1f27f4",
+"/teamspace/studios/this_studio/data_train_es/datasets--Fredtt3--LLaDA-Sample-ES/snapshots/1f3128a94b4ff7e8d96892052704529e720f6b58"])
 dataloader = DataLoader(
     dataset,
-    batch_size=4,
+    batch_size=1,
     shuffle=True,
-    num_workers=0,
-    pin_memory=False
+    num_workers=2,
+    pin_memory=True
 )
 
 

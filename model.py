@@ -922,7 +922,7 @@ class LLaDALlamaBlock(LLaDABlock):
             x = self._activation_checkpoint_fn(self.act, x)  # type: ignore
         else:
             x = self.act(x)
-        x = x * x_up # new add
+        #x = x * x_up # new add
         x = self.ff_out(x)
         x = self.dropout(x)
         x = og_x + x
