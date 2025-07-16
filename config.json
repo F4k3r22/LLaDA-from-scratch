@@ -4,7 +4,7 @@
   "init_fn": "mitchell",
   "init_std": 0.02,
 
-  "activation_type": "silu",
+  "activation_type": "swiglu",
   "alibi": false,
   "alibi_bias_max": 8.0,
 

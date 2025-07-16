@@ -27,14 +27,14 @@ print("Load model test")
 model = LLaDAModel(model_100M, init_params=True)
 print("Model test success")
 
-dataset = LLaDADataset(["data_train/datasets--Fredtt3--LLaDA-Sample-10BT",
-"data_train/datasets--Fredtt3--LLaDA-Sample-ES"], device=device)
+dataset = LLaDADataset(["/content/data_train_en/datasets--Fredtt3--LLaDA-Sample-10BT/snapshots/ee6dbc7d4bf1e4b2d0974e48f5fcb8b62b1f27f4",
+"/content/data_train_es/datasets--Fredtt3--LLaDA-Sample-ES/snapshots/1f3128a94b4ff7e8d96892052704529e720f6b58"], device=device)
 dataloader = DataLoader(
     dataset,
-    batch_size=8,
+    batch_size=4,
     shuffle=True,
-    num_workers=4,
-    pin_memory=True
+    num_workers=0,
+    pin_memory=False
 )
 
 
