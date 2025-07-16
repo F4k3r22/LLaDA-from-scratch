@@ -1,5 +1,5 @@
 from model import LLaDAModel
-from configs_llada import ModelConfig, LayerNormType, BlockType, InitFnType, ActivationType
+from configs_llada import ModelConfig, LayerNormType, BlockType, InitFnType, ActivationType, ActivationCheckpointingStrategy
 import torch
 from dataset import LLaDADataset
 from torch.utils.data import DataLoader
@@ -25,6 +25,7 @@ model_100M = ModelConfig(d_model=768, n_heads=12, n_layers=14,
 
 print("Load model test")
 model = LLaDAModel(model_100M, init_params=True)
+model.set_activation_checkpointing(ActivationCheckpointingStrategy.one_in_two)
 print("Model test success")
 
 dataset = LLaDADataset(["/teamspace/studios/this_studio/data_train_en/datasets--Fredtt3--LLaDA-Sample-10BT/snapshots/ee6dbc7d4bf1e4b2d0974e48f5fcb8b62b1f27f4",
@@ -33,7 +34,7 @@ dataloader = DataLoader(
     dataset,
     batch_size=1,
     shuffle=True,
-    num_workers=2,
+    num_workers=0,
     pin_memory=True
 )
 
@@ -51,6 +52,7 @@ scheduler = get_linear_schedule_with_warmup(
 log_every  = 100
 save_every = 5_000
 output_dir = Path("checkpoints")
+output_dir.mkdir(parents=True, exist_ok=True)
 
 for step, batch in enumerate(dataloader, start=1):
     model.train()
