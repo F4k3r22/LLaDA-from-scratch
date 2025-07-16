@@ -107,7 +107,7 @@ Step 5000
 [Step   5000/50000] loss=27371.1092 ppl=inf
 ```
 
-> ℹ️ Training is running on an A100 36GB GPU and uses:
+> ℹ️ Training is running on an A100 42GB GPU and uses:
 >
 > * **Gradient checkpointing** via `model.set_activation_checkpointing(...)`
 > * **Streaming dataset** loaded into CPU RAM and batched on-demand to GPU
