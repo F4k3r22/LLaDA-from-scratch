@@ -1,4 +1,8 @@
-# 🚀 LLaDA-from-scratch
+<h1 align="center">🚀 LLaDA-from-scratch</h1>
+
+<div align="center">
+  <img src="image/llada.png" alt="Llada Logo" width="200"/>
+</div>
 
 💡 I'm curious to implement LLaDA from scratch (For now I'm going to use what's in: [huggingface-modeling](https://huggingface.co/GSAI-ML/LLaDA-8B-Instruct/blob/main/modeling_llada.py) as a base, from there I'll implement a 1B model to be trained from scratch)
 
