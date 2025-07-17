@@ -113,6 +113,65 @@ Step 5000
 > * **Streaming dataset** loaded into CPU RAM and batched on-demand to GPU
 > * **Mixed precision (fp16/bfloat16)** where possible
 
+## 🧪 Generation Test with Dummy Model
+
+This repository includes a quick generation test script using a dummy model located in [`test_gen.py`](test_gen.py).
+This is not meant for quality evaluation but rather to validate that the architecture and generation logic work end-to-end.
+
+* 🧠 The model used is a **tiny 310M parameter LLaDA model**, trained only for **200 steps** on a **mini dataset of 40,960 tokens**.
+* ⚠️ **Disclaimer:** This model is **not competent** and does not produce meaningful completions. It's only intended to verify that inference runs successfully.
+* ✅ It is fully **compatible with Hugging Face Transformers** and uses the same generation logic.
+
+You can run it locally or directly in [Google Colab](https://colab.research.google.com/drive/1jPIPu9qHEFMkANzUEkeOxUW6hS3DeVwd?usp=sharing) 🚀
+
+```bash
+python test_gen.py
+```
+
+## 📤 How to Upload the Model to Hugging Face
+
+Once you’ve trained your model using `pre_train.py`, a compatible Hugging Face checkpoint is saved every `save_every` steps using:
+
+```python
+if step % save_every == 0:
+    checkpoint_dir = output_dir / f"llada_ckpt_{step:06d}"
+    checkpoint_dir.mkdir(parents=True, exist_ok=True)
+
+    # Save the model in transformers format
+    hf_model.save_pretrained(checkpoint_dir)
+    tokenizer.save_pretrained(checkpoint_dir)
+```
+
+To make your model fully usable with `transformers`, follow these steps before uploading to Hugging Face:
+
+1. In your `config.json`, make sure to define your architecture and `auto_map` field:
+
+```json
+"architectures": [
+  "LLaDAModelLM"
+],
+"auto_map": {
+  "AutoConfig": "configs_llada.LLaDAConfig",
+  "AutoModelForCausalLM": "model.LLaDAModelLM",
+  "AutoModel": "model.LLaDAModelLM"
+}
+```
+
+2. Copy the following files into the same directory as your checkpoint:
+
+   * `model.py` (containing `LLaDAModelLM`)
+   * `configs_llada.py` (containing `LLaDAConfig`)
+
+3. Upload the entire directory (including `model.safetensors or other`, `tokenizer.json`, `config.json`, etc.) to the Hugging Face Hub using:
+
+```bash
+huggingface-cli login
+huggingface-cli upload your-username/llada-test-model ./llada_ckpt_xxxxx
+```
+
+Your model will now be accessible and usable like any other Hugging Face `transformers` model! 🎉
+
+
 ## 🙏 Acknowledgments
 
 - The [ML-GSAI](https://github.com/ML-GSAI) team for the original architecture
