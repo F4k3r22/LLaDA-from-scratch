@@ -3,3 +3,5 @@ pydantic
 torch
 transformers
 datasets
+peft 
+accelerate
