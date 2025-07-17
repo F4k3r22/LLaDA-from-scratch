@@ -1,55 +1,54 @@
 {
-
-  "init_device": "meta",
-  "init_fn": "mitchell",
-  "init_std": 0.02,
-
   "activation_type": "swiglu",
   "alibi": false,
   "alibi_bias_max": 8.0,
-
-  "architectures": ["LLaDAModelLM"],
-  "auto_map": {
-    "AutoConfig": "configs_llada.LLaDAConfig",
-    "AutoModelForCausalLM": "model.LLaDAModelLM",
-    "AutoModel": "model.LLaDAModelLM"
-  },
-
-  "d_model": 768,
-  "n_layers": 14,
-  "n_heads": 12,
-  "n_kv_heads": 12,
-  "mlp_ratio": 4,
-  "mlp_hidden_size": 3072,        
-  "max_sequence_length": 4096,
-
-
-  "vocab_size": 126464,
-  "mask_token_id": 126336,
-  "eos_token_id": 126081,
-  "pad_token_id": 126081,
-
-  "layer_norm_type": "rms",
-  "rms_norm_eps": 1e-5,
+  "architectures": [
+    "LLaDAModelLM"
+  ],
   "attention_dropout": 0.0,
-  "residual_dropout": 0.0,
-  "embedding_dropout": 0.0,
-  "embedding_size": 126464,
-
-
-  "block_type": "llama",
-  "block_group_size": 1,
   "attention_layer_norm": false,
   "attention_layer_norm_with_affine": true,
+  "auto_map": {
+    "AutoConfig": "configs_llada.LLaDAConfig",
+    "AutoModelForCausalLM": "modeling_llada.LLaDAModelLM",
+    "AutoModel": "modeling_llada.LLaDAModelLM"
+  },
+  "bias_for_layer_norm": false,
+  "block_group_size": 1,
+  "block_type": "llama",
+  "d_model": 768,
+  "embedding_dropout": 0.0,
+  "embedding_size": 126464,
+  "eos_token_id": 126081,
+  "flash_attention": false,
+  "include_bias": false,
+  "include_qkv_bias": false,
+  "init_cutoff_factor": null,
+  "init_device": "meta",
+  "init_fn": "mitchell",
+  "init_std": 0.02,
+  "input_emb_norm": false,
+  "layer_norm_type": "rms",
+  "layer_norm_with_affine": true,
+  "mask_token_id": 126336,
+  "max_sequence_length": 4096,
+  "mlp_hidden_size": 3072,
+  "mlp_ratio": 4,
+  "model_type": "llada",
+  "multi_query_attention": null,
+  "n_heads": 12,
+  "n_kv_heads": 12,
+  "n_layers": 14,
+  "pad_token_id": 126081,
+  "precision": "bf16",
+  "residual_dropout": 0.0,
+  "rms_norm_eps": 1e-05,
   "rope": true,
   "rope_full_precision": true,
   "rope_theta": 500000.0,
-
-
-  "precision": "bf16",              
+  "scale_logits": false,
+  "transformers_version": "4.53.1",
   "use_cache": false,
-  "weight_tying": false,
-
-  "model_type": "llada",
-  "transformers_version": "4.53.1"
+  "vocab_size": 126464,
+  "weight_tying": false
 }
