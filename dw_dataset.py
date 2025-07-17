@@ -21,8 +21,11 @@ def dw_dataset(repo_id: str = "Fredtt3/LLaDA-Sample-10BT", files_count: int = 10
             cache_dir=out_dir,
         )
         print("Downloaded to", path)
+    
+    return path.partition("/processed")[0]
 
 if __name__ == "__main__":
-    dw_dataset(files_count=5, path_to_dataset="data_train_en")
+    en = dw_dataset(files_count=2, path_to_dataset="data_train_en")
+    print(en)
     #dw_dataset(repo_id="Fredtt3/LLaDA-Sample-ES", files_count=5, path_to_dataset="data_train_es")
     print("Done")
