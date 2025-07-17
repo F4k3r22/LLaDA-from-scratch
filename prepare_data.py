@@ -52,7 +52,7 @@ class PrepareData:
             remove_columns=dataset.column_names
         )
 
-        # Procesamiento en streaming: acumulamos tokens y procesamos chunks cuando alcanzan el tamaño deseado
+        # Streaming processing: We accumulate tokens and process chunks when they reach the desired size
         print("==== Processing tokens in streaming mode ====")
         processed = []
         current_chunk = []  # Acumula los tokens
@@ -60,9 +60,9 @@ class PrepareData:
         file_count = 0
 
 
-        # Define función para procesar cada chunk: crea tensor, enmascara y empaqueta
+        # Define function to process each chunk: create tensor, mask and pack
         def process_chunk(chunk_tokens):
-            chunk_tensor = torch.tensor(chunk_tokens, dtype=torch.long, device=device)
+            chunk_tensor = torch.tensor(chunk_tokens, dtype=torch.int32, device=device) # We will use dtype=torch.int32 instead of torch.long for optimization reasons and because even with int32 we can load the entire vocab_size
             t = random.random()
             p_mask = (1.0 - eps) * t + eps
             mask = torch.rand(chunk_tensor.size(0), device=device) < p_mask
@@ -75,7 +75,7 @@ class PrepareData:
                 "mask": mask
             }
 
-        # Itera sobre cada ejemplo del dataset ya tokenizado
+        # Iterate over each example in the already tokenized dataset
         for example in tqdm(dataset, desc="Processing dataset"):
             tokens = example["input_ids"]
             current_chunk.extend(tokens)
@@ -87,7 +87,7 @@ class PrepareData:
                 current_chunk = current_chunk[L:]
                 chunk_count += 1
 
-                # Guardar en archivo cada N chunks
+                # Save to file every N chunks
                 if chunk_count % self.chunks_per_file == 0:
                     file_path = self.output_dir / f"processed_chunk_{file_count:06d}.pt"
                     torch.save(processed, file_path)
@@ -95,7 +95,7 @@ class PrepareData:
                     processed = []
                     file_count += 1
 
-        # Guardar lo que queda
+        # Save what's left
         if processed:
             file_path = self.output_dir / f"processed_chunk_{file_count:06d}.pt"
             torch.save(processed, file_path)
