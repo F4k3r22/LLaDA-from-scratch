@@ -297,16 +297,10 @@ if __name__ == "__main__":
     import torch
     from transformers import AutoTokenizer, AutoModel
     from datasets import load_dataset
-    from transformers import BitsAndBytesConfig
-
-    bnb_config = BitsAndBytesConfig(
-      load_in_8bit=True,            
-      llm_int8_threshold=6.0        
-    )
 
     model_name = "GSAI-ML/LLaDA-8B-Instruct"
     tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True)
-    model     = AutoModel.from_pretrained(model_name, quantization_config=bnb_config, trust_remote_code=True)
+    model     = AutoModel.from_pretrained(model_name, trust_remote_code=True)
     model.eval()
     if torch.cuda.is_available():
         model.cuda()
