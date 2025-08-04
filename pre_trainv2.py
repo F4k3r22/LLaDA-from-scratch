@@ -8,6 +8,7 @@ from torch.optim import AdamW
 from transformers.optimization import get_linear_schedule_with_warmup
 from pathlib import Path
 from transformers import AutoTokenizer
+from torch.nn.utils.rnn import pad_sequence
 
 device = ("cuda:0" if torch.cuda.is_available() else "cpu")
 model_100M = ModelConfig(d_model=768, n_heads=12, n_layers=14, 
@@ -36,13 +37,28 @@ hf_configs = LLaDAConfig(d_model=768, n_heads=12, n_layers=14,
 
 def collate_fn_stack(batch):
     out = {}
-    for key in batch[0].keys():
-        vals = [sample[key] for sample in batch]
-        # convierte floats a tensores si hace falta
-        if not torch.is_tensor(vals[0]):
-            dtype = torch.float32 if isinstance(vals[0], float) else torch.long
-            vals = [torch.tensor(v, dtype=dtype) for v in vals]
-        out[key] = torch.stack(vals, dim=0)
+
+    # 1) Apilar t (escalar)        
+    t_vals = [sample["t"] for sample in batch]
+    if not torch.is_tensor(t_vals[0]):
+        t_vals = [torch.tensor(v, dtype=torch.float32) for v in t_vals]
+    out["t"] = torch.stack(t_vals, dim=0)  # [B]
+
+    # 2) Campos de secuencia
+    seq_keys = ["input_ids", "noisy_input_ids", "mask"]
+    # Descubre el pad_id (puedes ajustar según tu tokenizer/modelo)
+    pad_id = tokenizer.pad_token_id if "tokenizer" in globals() else 0
+
+    for key in seq_keys:
+        seqs = [sample[key] for sample in batch]
+        # Asegura que son tensores
+        if not torch.is_tensor(seqs[0]):
+            dtype = torch.long if key != "mask" else torch.bool
+            seqs = [torch.tensor(s, dtype=dtype) for s in seqs]
+        pad_val = False if key == "mask" else pad_id
+        padded = pad_sequence(seqs, batch_first=True, padding_value=pad_val)
+        out[key] = padded  # [B, L_max]
+
     return out
 
 print("Load model test")
