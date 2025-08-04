@@ -34,12 +34,15 @@ hf_configs = LLaDAConfig(d_model=768, n_heads=12, n_layers=14,
             init_device=device, init_fn=InitFnType.mitchell, init_std=0.02, activation_type=ActivationType.swiglu,
             alibi=False, alibi_bias_max=8.0)
 
-def collate_to_device(batch, device):
+def collate_fn_stack(batch):
     out = {}
     for key in batch[0].keys():
-        vals    = [sample[key] for sample in batch]
-        stacked = torch.stack(vals, dim=0)
-        out[key] = stacked.to(device, non_blocking=True)
+        vals = [sample[key] for sample in batch]
+        # convierte floats a tensores si hace falta
+        if not torch.is_tensor(vals[0]):
+            dtype = torch.float32 if isinstance(vals[0], float) else torch.long
+            vals = [torch.tensor(v, dtype=dtype) for v in vals]
+        out[key] = torch.stack(vals, dim=0)
     return out
 
 print("Load model test")
@@ -53,11 +56,11 @@ dataset = LLaDADatasetV2(["/teamspace/studios/this_studio/data_train_en/datasets
 "/teamspace/studios/this_studio/data_train_es/datasets--Fredtt3--LLaDA-Sample-ES/snapshots/1f3128a94b4ff7e8d96892052704529e720f6b58"])
 dataloader = DataLoader(
     dataset,
-    batch_size=1,
+    batch_size=2,
     shuffle=True,
-    num_workers=4,
+    num_workers=8,
     pin_memory=True,
-    collate_fn=lambda b: collate_to_device(b, device)
+    collate_fn=collate_fn_stack
 )
 
 
@@ -81,6 +84,7 @@ for step, batch in enumerate(dataloader, start=1):
     optimizer.zero_grad()
 
     # Batch now on device
+    batch = {k: v.to(device, non_blocking=True) for k, v in batch.items()}
     inp   = batch["input_ids"]#.to(device)        # [B, L]
     noisy = batch["noisy_input_ids"]#.to(device)  # [B, L]
     mask  = batch["mask"]#.to(device)             # [B, L]
